@@ -19,78 +19,29 @@ public class Logic {
     private int boardSize;
     private String[][] board;
     private int target;
-    private int TEAM_ID = 1296;
     private int turn;
     private boolean is_player_win;
     private boolean is_ai_win;
-    static int ai_move_row;
-    static int ai_move_colmn;
     static int X_num;
     static int O_num;
+    Logic(String selfSymbol, String oppoSymbol) {
+        this.selfSymbol = selfSymbol;
+        this.oppoSymbol = oppoSymbol;
+        this.map = new HashMap<>();
+        map.put("ai_win", 10);
+        map.put("player_win", -10);
+        map.put("tie", 0);
+    }
+
     public Logic(int gameId, int boardSize, int target, String selfSymbol, String oppoSymbol) throws Exception {
+        this(selfSymbol, oppoSymbol);
         this.requests = new Requests();
         this.gameid = gameId;
         this.target = target;
         this.boardSize = boardSize;
-        this.selfSymbol = selfSymbol;
-        this.oppoSymbol = oppoSymbol;
-        this.X_num = 0;
-        this.O_num = 0;
         this.board = new String[boardSize][boardSize];
         initBoard();
-
-//        int n = 2;
-//        int m = 2;
-//        //初始化数组
-//        String[][] Tic_Tac_Toe = new String[n][n];
-//        for (int i = 0; i < n; i++){
-//            for (int j = 0; j < n; j++){
-//                Tic_Tac_Toe[i][j] = "";
-//            }
-//        }
-
-//        boolean is_player = false;
-//        boolean is_ai = true;
-//        String player = "O";
-//        String ai = "X";
-        this.is_player_win = false;
-        this.is_ai_win = false;
-        this.map = new HashMap<String, Integer>();
-        map.put("ai_win", 10);
-        map.put("player_win", -10);
-        map.put("tie", 0);
-        ai_move_row = 0;
-        ai_move_colmn = 0;
         start();
-//        while (!check(Tic_Tac_Toe, n, m) && !check_full(Tic_Tac_Toe, n)){
-//            if (is_ai == true){
-//                best_move(Tic_Tac_Toe, n, m, map);
-////                ai_move_row = i;
-////                ai_move_colmn = j;
-//                System.out.println(ai_move_row);
-//                System.out.println(ai_move_colmn);
-//
-//
-//
-//                is_ai = false;
-//                is_player = true;
-//                //需要把选择的位置传出
-//            }else{
-//                human(Tic_Tac_Toe, n);
-//                is_player = false;
-//                is_ai = true;
-//            }
-//        }
-
-//        if (is_player_win == true){
-//            System.out.println("player win");
-//        }
-//        else if (is_ai_win == true){
-//            System.out.println("ai win");
-//        }else{
-//            System.out.println("tie");
-//        }
-
     }
 
     /**
@@ -140,31 +91,34 @@ public class Logic {
             }
         }
     }
-    public void best_move(String[][] Tic_Tac_Toe, int n, int m, HashMap<String, Integer> map) throws Exception {
-        int max_score = Integer.MIN_VALUE;
-        int max_num = 0;
-        for (int i = 0; i < n; i++){
-            for (int j = 0; j < n; j++){
-                if (Tic_Tac_Toe[i][j] == ""){
-                    Tic_Tac_Toe[i][j] = this.selfSymbol;
-                    int alpha = Integer.MIN_VALUE;
-                    int beta = Integer.MAX_VALUE;
-                    int score = Alpha_beta_search(0, Tic_Tac_Toe, n, m, map, false, alpha, beta);
-                    Tic_Tac_Toe[i][j] = "";
-                    if (score > max_score){
-                        max_score = score;
-                        ai_move_row = i;
-                        ai_move_colmn = j;
-                    }
-                    if(X_num >= max_num && score > max_score){
-                        max_score = score;
-                        ai_move_row = i;
-                        ai_move_colmn = j;
-                    }
+    public void best_move(String[][] board, int n, int target, HashMap<String, Integer> scores) throws Exception {
+        int[] move = chooseMove(board, n, target, scores);
+        confirmMove(move[0], move[1]);
+    }
+
+    int[] chooseMove(String[][] board, int target) {
+        return chooseMove(board, board.length, target, map);
+    }
+
+    private int[] chooseMove(String[][] board, int n, int target, HashMap<String, Integer> scores) {
+        if (!result(board, n, target).isEmpty()) {
+            throw new IllegalArgumentException("The game has already ended.");
+        }
+        int bestScore = Integer.MIN_VALUE;
+        int[] bestMove = null;
+        for (int row = 0; row < n; row++) {
+            for (int column = 0; column < n; column++) {
+                if (!board[row][column].isEmpty()) continue;
+                board[row][column] = selfSymbol;
+                int score = Alpha_beta_search(0, board, n, target, scores, false, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                board[row][column] = "";
+                if (bestMove == null || score > bestScore) {
+                    bestScore = score;
+                    bestMove = new int[] {row, column};
                 }
             }
         }
-        confirmMove(ai_move_row, ai_move_colmn);
+        return bestMove;
     }
 
     private void updateBoard(int x, int y, String symbol) {
@@ -227,7 +181,7 @@ public class Logic {
         String move = Integer.toString(x) + "," + Integer.toString(y);
         HashMap<String, String> params = new HashMap<String, String>();
         params.put("type", "move");
-        params.put("teamId", Integer.toString(this.TEAM_ID));
+        params.put("teamId", this.requests.teamId());
         params.put("gameId", Integer.toString(this.gameid));
         params.put("move", move);
         String result = this.requests.post(params);
@@ -285,7 +239,7 @@ public class Logic {
             return max;
         }
     }
-    public boolean check_full(String[][] Tic_Tac_Toe, int n){
+    public static boolean check_full(String[][] Tic_Tac_Toe, int n){
         for (int i = 0; i < n; i++){
             for (int j = 0; j < n; j++){
                 if (Tic_Tac_Toe[i][j] == ""){

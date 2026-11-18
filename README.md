@@ -1,7 +1,19 @@
-# Advanced Tic Tac Toe AI: An Exploration of Adversarial Search Algorithms
+# Tic-Tac-Toe AI in Java
 
 ## Project Overview
 This Java coursework project explores game-tree search on generalized tic-tac-toe. Players can choose a board size and a target line length. The AI scores candidate moves with depth-limited Minimax and Alpha-Beta pruning. The command-line client creates or joins matches through a course server.
+
+## Run the offline demo
+
+From the repository root, use a JDK to compile and run the demo. It uses the same move selection as the online client and runs locally with no server or credentials.
+
+```bash
+mkdir -p build
+javac -encoding UTF-8 -cp fastjson-1.2.80.jar -d build src/*.java
+java -cp 'build:fastjson-1.2.80.jar' Main --demo
+```
+
+The demo prints two 3×3 boards. `X` can win immediately in the first and must block `O` in the second. Both positions lead to row 1, column 3. The JUnit tests verify both moves.
 
 ## Key Features
 - Scalable board dimensions: Supports 3x3 and larger grids
@@ -35,16 +47,9 @@ The system dynamically adjusts its algorithmic approach based on the current gam
 - `Main.java`: Manages game initialization and user interaction
 - `Requests.java`: Handles HTTP communication with the game server, enabling online play
 
-## Build and run
+## Online course client
 
-Use a JDK and run these commands from the repository root. The JSON dependency is bundled as `fastjson-1.2.80.jar`.
-
-```bash
-mkdir -p build
-javac -encoding UTF-8 -cp fastjson-1.2.80.jar -d build src/*.java
-```
-
-To start the original online client:
+If you have authorized access to a compatible course server, configure `TIC_TAC_TOE_API_URL` with its HTTPS endpoint and set `TIC_TAC_TOE_API_KEY`, `TIC_TAC_TOE_USER_ID`, and `TIC_TAC_TOE_TEAM_ID` in your environment. Then launch the client:
 
 ```bash
 java -cp 'build:fastjson-1.2.80.jar' Main
@@ -57,7 +62,7 @@ Use `;` instead of `:` in the Java classpath on Windows. At the first prompt, en
 | Join | Game ID, board size, target line length, team priority (1 or 2) |
 | Create | Opponent team ID, board size, target line length, team priority (1 or 2) |
 
-The online client requires the historical course server and valid course credentials. The repository does not include a local server. The tests in [`Test/LogicTest.java`](Test/LogicTest.java) exercise board logic and can be opened in IntelliJ with JUnit 5.
+Online play depends on the course server. The tests in [`Test/LogicTest.java`](Test/LogicTest.java) run locally with JUnit 5.
 
 ## Academic Significance
 This project demonstrates the practical application of advanced AI concepts in game theory:
@@ -141,7 +146,7 @@ AI策略：
 
 ## 如何使用
 
-在仓库根目录按上面的命令编译。启动后输入 `Y` 加入已有对局，或输入 `N` 创建对局。下一行填写四个用空格分隔的值。加入时依次填写对局 ID、棋盘大小、目标连线数和先后手选项。创建时把第一项换成对手队伍 ID。在线对局依赖课程服务器和有效凭据。
+在仓库根目录按上面的命令编译，用 `Main --demo` 查看一步获胜和阻挡对手这两个离线示例。若要用课程服务器联机，先按 Online course client 配置 HTTPS 地址和凭据，再运行 `Main`。启动后输入 `Y` 加入对局，或输入 `N` 创建对局。
 
 ## AI策略
 AI使用改进的Minimax算法来评估每一步可能的移动。通过Alpha-Beta剪枝优化搜索效率，并使用深度限制（深度为4）来平衡计算速度和决策质量。启发式函数基于当前局面中最长的潜在连线来评估位置优劣。

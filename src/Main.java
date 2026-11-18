@@ -6,6 +6,10 @@ import com.alibaba.fastjson.*;
 public class Main {
 
     public static void main(String[] args) throws Exception {
+        if (args.length == 1 && args[0].equals("--demo")) {
+            OfflineDemo.run();
+            return;
+        }
         Scanner myObj = new Scanner(System.in);
 
         System.out.println("Have you already created a game? (Y/N)");
@@ -30,7 +34,6 @@ public class Main {
             String opponentTeamId = inputSplit[0].trim();
             int boardSize = Integer.parseInt(inputSplit[1]), target = Integer.parseInt(inputSplit[2]), priority = Integer.parseInt(inputSplit[3]);
             int gameId = createGame(opponentTeamId, boardSize, target, priority);
-            Requests requests = new Requests();
 
 //            HashMap<String, String> params5 = new HashMap<String, String>();
 //            params5.put("type", "member");
@@ -148,7 +151,7 @@ public class Main {
 
         HashMap<String, String> params3 = new HashMap<String, String>();
         params3.put("type", "team");
-        params3.put("teamId", "1296");
+        params3.put("teamId", requests.teamId());
         String result3 = requests.get(params3);
         JSONObject parsedResult3 = JSON.parseObject(result3);
         if (!parsedResult3.getString("code").equals("OK")) {
@@ -176,12 +179,12 @@ public class Main {
         params.put("type", "game");
         if (priority == 1) {
             // Move first
-            params.put("teamId1", Integer.toString(1296));
+            params.put("teamId1", requests.teamId());
             params.put("teamId2", opponentTeamId);
         } else if (priority == 2) {
             // Move second
             params.put("teamId1", opponentTeamId);
-            params.put("teamId2", Integer.toString(1296));
+            params.put("teamId2", requests.teamId());
         }
         params.put("gameType", "TTT");
         params.put("boardSize", Integer.toString(boardSize));

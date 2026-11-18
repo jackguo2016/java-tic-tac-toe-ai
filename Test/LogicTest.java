@@ -2,6 +2,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LogicTest {
 
+    @org.junit.jupiter.api.Test
+    void choosesAnImmediateWin() {
+        String[][] board = {{"X", "X", ""}, {"O", "O", ""}, {"", "", ""}};
+        assertArrayEquals(new int[] {0, 2}, new Logic("X", "O").chooseMove(board, 3));
+        assertArrayEquals(new String[] {"X", "X", ""}, board[0]);
+    }
+
+    @org.junit.jupiter.api.Test
+    void blocksTheOpponentsImmediateWin() {
+        String[][] board = {{"O", "O", ""}, {"X", "", ""}, {"", "X", ""}};
+        assertArrayEquals(new int[] {0, 2}, new Logic("X", "O").chooseMove(board, 3));
+    }
+
     String[][] Tic_Tac_Toe = new String[10][10];
     @org.junit.jupiter.api.Test
     void check_full() {

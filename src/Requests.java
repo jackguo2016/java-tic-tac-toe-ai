@@ -1,20 +1,41 @@
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URI;
+import javax.net.ssl.HttpsURLConnection;
 import java.util.Map;
 import java.util.HashMap;
 
 
 public class Requests {
-    private final String BASE_URL = "http://www.notexponential.com/aip2pgaming/api/index.php";
-    private HashMap<String, String> properties;
+    private final URI endpoint;
+    private final String teamId;
+    private final Map<String, String> properties = new HashMap<>();
 
     public Requests() {
-        properties = new HashMap<String, String>();
-        properties.put("x-api-key", "402f27e625a2c34a2599");
-        properties.put("userid", "1110");
+        endpoint = URI.create(requiredEnvironment("TIC_TAC_TOE_API_URL"));
+        if (!"https".equalsIgnoreCase(endpoint.getScheme()) || endpoint.getHost() == null
+                || endpoint.getRawUserInfo() != null || endpoint.getRawQuery() != null
+                || endpoint.getRawFragment() != null) {
+            throw new IllegalArgumentException("TIC_TAC_TOE_API_URL must be an HTTPS endpoint without user info, query, or fragment.");
+        }
+        properties.put("x-api-key", requiredEnvironment("TIC_TAC_TOE_API_KEY"));
+        properties.put("userid", requiredEnvironment("TIC_TAC_TOE_USER_ID"));
         properties.put("Content-Type", "application/x-www-form-urlencoded");
+        teamId = requiredEnvironment("TIC_TAC_TOE_TEAM_ID");
+        if (!teamId.matches("[1-9][0-9]*")) {
+            throw new IllegalArgumentException("TIC_TAC_TOE_TEAM_ID must be a positive integer.");
+        }
+    }
+
+    String teamId() {
+        return teamId;
+    }
+
+    private static String requiredEnvironment(String name) {
+        String value = System.getenv(name);
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException("Set " + name + " for online play, or run Main --demo.");
+        }
+        return value.trim();
     }
 
     /**
@@ -27,7 +48,7 @@ public class Requests {
         StringBuilder result = new StringBuilder();
 
         // Add parameters
-        String concatUrl = BASE_URL + "?";
+        String concatUrl = endpoint + "?";
         StringBuilder paramsSB = new StringBuilder();
         for (Map.Entry<String, String> entry : params.entrySet()) {
             paramsSB.append("&");
@@ -38,8 +59,8 @@ public class Requests {
         concatUrl += paramsSB.toString().substring(1);
 
         // Create connection
-        URL url = new URL(concatUrl);
-        URLConnection connection = url.openConnection();
+        HttpsURLConnection connection = (HttpsURLConnection) URI.create(concatUrl).toURL().openConnection();
+        connection.setInstanceFollowRedirects(false);
         for (Map.Entry<String, String> entry : properties.entrySet()) {
             connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
@@ -73,8 +94,8 @@ public class Requests {
         StringBuilder result = new StringBuilder();
 
         // Create connection
-        URL url = new URL(BASE_URL);
-        URLConnection connection = url.openConnection();
+        HttpsURLConnection connection = (HttpsURLConnection) endpoint.toURL().openConnection();
+        connection.setInstanceFollowRedirects(false);
         for (Map.Entry<String, String> entry : properties.entrySet()) {
             connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
