@@ -159,3 +159,7 @@ AI使用改进的Minimax算法来评估每一步可能的移动。通过Alpha-Be
 
 ## 贡献
 欢迎贡献代码或提出改进建议。请fork本项目，创建您的特性分支，提交变更，并发起pull request。
+
+## Project history
+
+Former repository name: `CSAI-project3`. This repository preserves the original coursework and its development history.
